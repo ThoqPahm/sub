@@ -27,7 +27,7 @@ class LinksController extends FrontController
         $this->viewBuilder()->setLayout('front');
         $this->Auth->allow(['shorten', 'view', 'go', 'popad']);
 
-//        if (in_array($this->getRequest()->getParam('action'), ['view', 'go', 'popad'])) {
+        //        if (in_array($this->getRequest()->getParam('action'), ['view', 'go', 'popad'])) {
 //            $this->getEventManager()->off($this->Security);
 //        }
     }
@@ -64,9 +64,14 @@ class LinksController extends FrontController
         if (!$link) {
             throw new NotFoundException(__('404 Not Found'));
         }
+
+        if ($link->unlock_mode == 1) {
+            return $this->redirect(['controller' => 'Unlock', 'action' => 'gateway', $alias]);
+        }
+
         $this->set('link', $link);
 
-        if ((bool)get_option('maintenance_mode', false)) {
+        if ((bool) get_option('maintenance_mode', false)) {
             return $this->redirect($link->url, 307);
         }
 
@@ -78,8 +83,8 @@ class LinksController extends FrontController
         }
 
         $detector = new \Detection\MobileDetect();
-        if ((bool)$detector->is("Bot")) {
-            if ((bool)validCrawler()) {
+        if ((bool) $detector->is("Bot")) {
+            if ((bool) validCrawler()) {
                 return $this->redirect($link->url, 301);
             }
         }
@@ -168,9 +173,9 @@ class LinksController extends FrontController
         $this->set('displayCaptchaShortlink', $displayCaptchaShortlink);
 
         if ($this->getRequest()->getData('action') !== 'captcha') {
-            $pagesNumber = (int)\get_option('continue_pages_number', 0);
+            $pagesNumber = (int) \get_option('continue_pages_number', 0);
             if ($pagesNumber > 0) {
-                $page = (int)$this->getRequest()->getData('page', 1);
+                $page = (int) $this->getRequest()->getData('page', 1);
 
                 if ($page <= $pagesNumber) {
                     $this->set('page', $page);
@@ -204,11 +209,11 @@ class LinksController extends FrontController
                 $traffic_source = 2; // Desktop
             }
 
-            $paidAds = (object)$this->getPaidAds($ad_type, $traffic_source, $country);
+            $paidAds = (object) $this->getPaidAds($ad_type, $traffic_source, $country);
             $this->set('paidAds', $paidAds);
 
             if (get_option('enable_popup', 'yes') == 'yes') {
-                $popupPaidAds = (object)$this->getPaidAds(3, $traffic_source, $country);
+                $popupPaidAds = (object) $this->getPaidAds(3, $traffic_source, $country);
                 $show_pop_ad = false;
                 $pop_ad = [];
                 if ($popupPaidAds) {
@@ -317,9 +322,9 @@ class LinksController extends FrontController
 
         $ad_form_data = data_decrypt($this->getRequest()->getData('ad_form_data'));
 
-        $t = (int)$ad_form_data['t'];
-        $diff_seconds = (int)(time() - $t);
-        $counter_value = (int)$ad_form_data['timer'];
+        $t = (int) $ad_form_data['t'];
+        $diff_seconds = (int) (time() - $t);
+        $counter_value = (int) $ad_form_data['timer'];
 
         if ($diff_seconds < $counter_value) {
             $content = [
@@ -554,7 +559,7 @@ class LinksController extends FrontController
         /**
          * Check if earnings are disabled
          */
-        if (!(bool)get_option('enable_publisher_earnings', 1)) {
+        if (!(bool) get_option('enable_publisher_earnings', 1)) {
             // Update link hits
             $this->updateLinkHits($link);
             $this->addNormalStatisticEntry($link, $ad_type, $data, get_ip(), 12);
@@ -737,7 +742,7 @@ class LinksController extends FrontController
 
         $link_user_plan = get_user_plan($link->user_id);
 
-        $views_hourly_limit = (int)$link_user_plan->views_hourly_limit;
+        $views_hourly_limit = (int) $link_user_plan->views_hourly_limit;
 
         if ($views_hourly_limit > 0) {
             $hour = Time::now()->hour;
@@ -769,7 +774,7 @@ class LinksController extends FrontController
             }
         }
 
-        $views_daily_limit = (int)$link_user_plan->views_daily_limit;
+        $views_daily_limit = (int) $link_user_plan->views_daily_limit;
 
         if ($views_daily_limit > 0) {
             $startOfDay = Time::now()->startOfDay()->format('Y-m-d H:i:s');
@@ -800,7 +805,7 @@ class LinksController extends FrontController
             }
         }
 
-        $views_monthly_limit = (int)$link_user_plan->views_monthly_limit;
+        $views_monthly_limit = (int) $link_user_plan->views_monthly_limit;
 
         if ($views_monthly_limit > 0) {
             $startOfMonth = Time::now()->startOfMonth()->format('Y-m-d H:i:s');
@@ -898,7 +903,7 @@ class LinksController extends FrontController
         }
 
         $referral_id = $referral_earn = 0;
-        $enable_referrals = (bool)get_option('enable_referrals', 1);
+        $enable_referrals = (bool) get_option('enable_referrals', 1);
 
         if ($enable_referrals && $publisher_user_earnings && !empty($user_update->referred_by)) {
             $user_referred_by = $this->Links->Users->find()
@@ -915,12 +920,12 @@ class LinksController extends FrontController
                     $plan_referral = false;
                 }
 
-                if (!(float)get_user_plan($user_referred_by->id)->referral_percentage) {
+                if (!(float) get_user_plan($user_referred_by->id)->referral_percentage) {
                     $plan_referral = false;
                 }
 
                 if ($plan_referral) {
-                    $referral_percentage = ((float)get_user_plan($user_referred_by->id)->referral_percentage) / 100;
+                    $referral_percentage = ((float) get_user_plan($user_referred_by->id)->referral_percentage) / 100;
                     $referral_value = $publisher_earn * $referral_percentage;
 
                     $user_referred_by->referral_earnings = price_database_format($user_referred_by->referral_earnings +
@@ -1001,7 +1006,7 @@ class LinksController extends FrontController
 
     protected function addNormalStatisticEntry($link, $ad_type, $data, $ip, $reason = 0)
     {
-        if ((bool)get_option('store_only_paid_clicks_statistics', 0)) {
+        if ((bool) get_option('store_only_paid_clicks_statistics', 0)) {
             return;
         }
 
@@ -1230,8 +1235,9 @@ class LinksController extends FrontController
             $user_id = $this->Auth->user('id');
         }
 
-        if ($user_id === 1 &&
-            (bool)get_option('enable_captcha_shortlink_anonymous', false) &&
+        if (
+            $user_id === 1 &&
+            (bool) get_option('enable_captcha_shortlink_anonymous', false) &&
             isset_captcha() &&
             !$this->Captcha->verify($this->getRequest()->getData())
         ) {

@@ -32,6 +32,11 @@ class LinksTable extends Table
     {
         $this->belongsTo('Users');
         $this->hasMany('Statistics');
+        $this->hasMany('UnlockTasks', [
+            'foreignKey' => 'link_id',
+            'dependent' => true,
+            'cascadeCallbacks' => true,
+        ]);
         $this->addBehavior('Timestamp');
     }
 
@@ -227,7 +232,7 @@ class LinksTable extends Table
                     }
 
                     // https://www.phishtank.com/api_info.php
-
+        
                     $url = 'https://checkurl.phishtank.com/checkurl/';
                     $method = 'POST';
                     $data = [
@@ -261,7 +266,7 @@ class LinksTable extends Table
             ])
             ->add('alias', 'alphaNumericDashUnderscore', [
                 'rule' => function ($value, $context) {
-                    return (bool)preg_match('|^[0-9a-zA-Z_-]*$|', $value);
+                    return (bool) preg_match('|^[0-9a-zA-Z_-]*$|', $value);
                 },
                 'last' => true,
                 'message' => __('Alias can only contain letters, numbers, dash and underscore'),

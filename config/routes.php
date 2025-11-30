@@ -125,6 +125,17 @@ Router::scope('/', function (RouteBuilder $routes) {
         ['controller' => 'Links', 'action' => 'view'],
         ['pass' => ['alias'], '_name' => 'short']
     );
+
+    // Sub2Unlock Gateway
+    $routes->connect('/unlock/gateway/:alias', ['controller' => 'Unlock', 'action' => 'gateway'], ['pass' => ['alias']]);
+});
+
+/*
+ * API Routes
+ */
+Router::prefix('api', function (RouteBuilder $routes) {
+    $routes->connect('/unlock/:action/*', ['controller' => 'UnlockApi']);
+    $routes->fallbacks(DashedRoute::class);
 });
 
 /*
